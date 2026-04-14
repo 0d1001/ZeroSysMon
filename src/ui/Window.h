@@ -33,4 +33,5 @@ private:
     int m_height;
 
     void RenderCPU(const SystemState& state, const ImVec2& blockSize, const ImVec2& position);
+    void RenderRAM(const SystemState& state, const ImVec2& blockSize, const ImVec2& position);
 };

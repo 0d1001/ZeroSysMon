@@ -4,7 +4,7 @@
 
 Window::Window()
     : m_window(nullptr)
-    , m_clearColor(0.45f, 0.55f, 0.60f, 1.00f)
+    , m_clearColor(0.04f, 0.05f, 0.05f, 1.0f)
     , m_shouldClose(false)
     , m_width(0)
     , m_height(0)
@@ -70,6 +70,8 @@ void Window::ProcessEvents()
     if (glfwWindowShouldClose(m_window)) {
         m_shouldClose = true;
     }
+
+    glfwGetWindowSize(m_window, &m_width, &m_height);
 }
 
 void Window::Render(const SystemState& state)
@@ -88,8 +90,8 @@ void Window::Render(const SystemState& state)
     style.GrabRounding = 6.0f;
     style.PopupRounding = 8.0f;
     
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.08f, 0.08f, 0.10f, 0.95f);
-    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.12f, 0.12f, 0.15f, 0.98f);
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.04f, 0.05f, 0.05f, 1.0f);
+    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.08f, 0.09f, 0.1f, 1.0f);
     style.Colors[ImGuiCol_Border] = ImVec4(0.30f, 0.30f, 0.35f, 1.00f);
     
     // ========== Interface ==========
@@ -102,15 +104,27 @@ void Window::Render(const SystemState& state)
         ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoBringToFrontOnFocus);
+
+    float margin = 40.0f;
+    float blockSpacing = 30.0f; 
     
     // CPU BLOCK
-    ImVec2 cpuBlockSize(400.0f, 170.0f);
+    ImVec2 cpuBlockSize(m_width / 2 - margin - blockSpacing / 2, m_height / 2 - margin - blockSpacing / 2);
     ImVec2 cpuPosition(
-        (io.DisplaySize.x - cpuBlockSize.x) * 0.1f,
-        (io.DisplaySize.y - cpuBlockSize.y) * 0.2f 
+        margin,
+        margin
     );
     
     RenderCPU(state, cpuBlockSize, cpuPosition);
+
+    // RAM BLOCL
+    ImVec2 ramBlockSize(m_width / 2 - margin - blockSpacing / 2, m_height / 2 - margin - blockSpacing / 2);
+    ImVec2 ramPosition(
+        m_width / 2 + blockSpacing / 2,
+        margin
+    );
+    
+    RenderRAM(state, ramBlockSize, ramPosition);
     
     ImGui::End();
     // =================================
@@ -134,7 +148,7 @@ void Window::RenderCPU(const SystemState& state, const ImVec2& blockSize, const 
     ImGui::BeginChild("CPU Block", blockSize, true);
     
     // Header
-    ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "CPU");
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "CPU");
     ImGui::Separator();
     ImGui::Spacing();
     
@@ -163,13 +177,54 @@ void Window::RenderCPU(const SystemState& state, const ImVec2& blockSize, const 
     ImGui::Spacing();
     
     // CPU USAGE
-    ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "CPU USAGE:");
-    ImGui::ProgressBar((float)state.cpuPercent / 100.0f, ImVec2(blockSize.x - 75, 25));
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 1.0f, 1.0f), "CPU USAGE:");
     ImGui::SameLine(blockSize.x - 55);
-    ImGui::Text("%.1f %%", state.cpuPercent);
+    ImGui::Text("%.1f %%", state.cpuPercent[31]);
+
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    ImGui::PlotHistogram(
+        "##CPU_GRAPH",
+        state.cpuPercent, 
+        32, 
+        0, 
+        nullptr,
+        0.0f, 
+        100.0f, 
+        ImVec2(blockSize.x - 20, 90)
+    );
     
     ImGui::EndChild();
 }
+
+void Window::RenderRAM(const SystemState& state, const ImVec2& blockSize, const ImVec2& position)
+{
+    ImGui::SetCursorPos(position);
+    
+    ImGui::BeginChild("RAM Block", blockSize, true);
+    
+    // Header
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "RAM");
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // RAM COUNT
+    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Used:");
+    ImGui::SameLine(120.0f);
+    ImGui::Text("%llu / %llu GB", state.ramUsedGB, state.ramTotalGB);
+    
+    ImGui::Spacing();
+    
+    // RAM USAGE
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 1.0f, 1.0f), "RAM USAGE:");
+    ImGui::ProgressBar((float)state.ramPercent / 100.0f, ImVec2(blockSize.x - 75, 25));
+    ImGui::SameLine(blockSize.x - 55);
+    ImGui::Text("%.1f %%", state.ramPercent);
+    
+    ImGui::EndChild();
+}
+
 
 bool Window::ShouldClose() const
 {

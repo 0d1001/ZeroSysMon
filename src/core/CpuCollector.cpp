@@ -9,7 +9,7 @@ CpuCollector::~CpuCollector() { }
 
 bool CpuCollector::Initialize(SystemState& state)
 {
-    state.cpuPercent = GetCurrentUsage();
+    state.cpuPercent[31] = GetCurrentUsage();
     state.cpuName = GetProcessorName();
     state.cpuCores = GetCoreCount();
     state.cpuThreads = GetThreadCount();
@@ -20,7 +20,11 @@ bool CpuCollector::Initialize(SystemState& state)
 
 void CpuCollector::Update(SystemState& state)
 {
-    state.cpuPercent = GetCurrentUsage();
+    for (int i = 0; i < 31; i++)
+    {
+        state.cpuPercent[i] = state.cpuPercent[i + 1];
+    }
+    state.cpuPercent[31] = GetCurrentUsage();
 }
 
 std::string CpuCollector::GetProcessorName() {

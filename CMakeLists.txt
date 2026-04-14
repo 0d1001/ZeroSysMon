@@ -22,6 +22,7 @@ set(IMGUI_SOURCES
 add_executable(ImGuiApp 
     src/main.cpp
     src/core/CpuCollector.cpp
+    src/core/RamCollector.cpp
     src/ui/Window.cpp
     ${IMGUI_SOURCES})
 

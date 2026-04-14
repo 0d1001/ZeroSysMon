@@ -7,7 +7,7 @@ struct SystemState
 {
     // CPU
     std::string cpuName;
-    float cpuPercent;
+    float cpuPercent[32] = {0};
     float cpuFrequencyGHz;
     int cpuCores;
     int cpuThreads;
@@ -16,7 +16,6 @@ struct SystemState
     uint64_t ramTotalGB;
     uint64_t ramUsedGB;
     double ramPercent;
-    
     // GPU
     char gpuName[128];
     float gpuPercent;
