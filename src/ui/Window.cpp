@@ -1,6 +1,11 @@
 #include "Window.h"
 #include <iostream>
+#include <windows.h>
+#include <algorithm>
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 Window::Window()
     : m_window(nullptr)
@@ -34,7 +39,12 @@ bool Window::Initialize(const char* title, int width, int height)
         glfwTerminate();
         return false;
     }
-    
+
+    HWND hwnd = glfwGetWin32Window(m_window);
+    if (hwnd) {
+        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    }
+
     glfwMakeContextCurrent(m_window);
     glfwSwapInterval(1);
     
@@ -42,6 +52,11 @@ bool Window::Initialize(const char* title, int width, int height)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
+
+    m_fontDefault = io.Fonts->AddFontFromFileTTF("resources/fonts/Unbounded-Regular.ttf", 14.0f);
+
+    m_fontLarge = io.Fonts->AddFontFromFileTTF("resources/fonts/Unbounded-Bold.ttf", 28.0f);
+
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     
     // Setup backends
@@ -77,7 +92,7 @@ void Window::ProcessEvents()
 void Window::Render(const SystemState& state)
 {
     if (!m_window) return;
-    
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -85,13 +100,13 @@ void Window::Render(const SystemState& state)
     ImGuiIO& io = ImGui::GetIO();
     
     ImGuiStyle& style = ImGui::GetStyle();
-    style.ChildRounding = 10.0f;
-    style.FrameRounding = 8.0f;
+    style.ChildRounding = 8.0f;
+    style.FrameRounding = 6.0f;
     style.GrabRounding = 6.0f;
     style.PopupRounding = 8.0f;
     
-    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.04f, 0.05f, 0.05f, 1.0f);
-    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.08f, 0.09f, 0.1f, 1.0f);
+    style.Colors[ImGuiCol_WindowBg] = ImVec4(0.13f, 0.13f, 0.13f, 1.0f);
+    style.Colors[ImGuiCol_ChildBg] = ImVec4(0.17f, 0.17f, 0.17f, 1.0f);
     style.Colors[ImGuiCol_Border] = ImVec4(0.30f, 0.30f, 0.35f, 1.00f);
     
     // ========== Interface ==========
@@ -104,12 +119,27 @@ void Window::Render(const SystemState& state)
         ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoBringToFrontOnFocus);
+    
+    ImGui::SetCursorPos(ImVec2(io.DisplaySize.x - 150, 10));
+    static bool alwaysOnTop = true;
+    if (ImGui::Checkbox("Always on Top", &alwaysOnTop)) {
+        HWND hwnd = glfwGetWin32Window(m_window);
+        if (hwnd) {
+            SetWindowPos(hwnd, 
+                        alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST,
+                        0, 0, 0, 0, 
+                        SWP_NOMOVE | SWP_NOSIZE);
+        }
+    }
 
     float margin = 40.0f;
-    float blockSpacing = 30.0f; 
+    float blockSpacing = 30.0f;
+
+    float minBlockWidth = 400.0f;
+    float minBlockHeight = 250.0f;
     
     // CPU BLOCK
-    ImVec2 cpuBlockSize(m_width / 2 - margin - blockSpacing / 2, m_height / 2 - margin - blockSpacing / 2);
+    ImVec2 cpuBlockSize(std::max((m_width / 2 - margin - blockSpacing / 2), minBlockWidth), std::max((m_height / 2 - margin - blockSpacing / 2), minBlockHeight));
     ImVec2 cpuPosition(
         margin,
         margin
@@ -117,10 +147,10 @@ void Window::Render(const SystemState& state)
     
     RenderCPU(state, cpuBlockSize, cpuPosition);
 
-    // RAM BLOCL
-    ImVec2 ramBlockSize(m_width / 2 - margin - blockSpacing / 2, m_height / 2 - margin - blockSpacing / 2);
+    // RAM BLOCK
+    ImVec2 ramBlockSize(std::max((m_width / 2 - margin - blockSpacing / 2), minBlockWidth), std::max((m_height / 2 - margin - blockSpacing / 2), minBlockHeight));
     ImVec2 ramPosition(
-        m_width / 2 + blockSpacing / 2,
+        cpuBlockSize.x + margin + blockSpacing,
         margin
     );
     
@@ -145,10 +175,10 @@ void Window::RenderCPU(const SystemState& state, const ImVec2& blockSize, const 
 {
     ImGui::SetCursorPos(position);
     
-    ImGui::BeginChild("CPU Block", blockSize, true);
+    ImGui::BeginChild("CPU Block", ImVec2(blockSize.x, blockSize.y / 2), true);
     
     // Header
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "CPU");
+    ImGui::TextColored(ImVec4(0.2f, 0.6f, 1.0f, 1.0f), "CPU");
     ImGui::Separator();
     ImGui::Spacing();
     
@@ -166,63 +196,150 @@ void Window::RenderCPU(const SystemState& state, const ImVec2& blockSize, const 
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Threads:");
     ImGui::SameLine(120.0f);
     ImGui::Text("%d", state.cpuThreads);
-    
-    ImGui::Spacing();
 
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Frequency:");
     ImGui::SameLine(120.0f);
     ImGui::Text("%.2f GHz", state.cpuFrequencyGHz);
-
-    ImGui::Separator();
-    ImGui::Spacing();
-    
-    // CPU USAGE
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 1.0f, 1.0f), "CPU USAGE:");
-    ImGui::SameLine(blockSize.x - 55);
-    ImGui::Text("%.1f %%", state.cpuPercent[31]);
-
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    ImGui::PlotHistogram(
-        "##CPU_GRAPH",
-        state.cpuPercent, 
-        32, 
-        0, 
-        nullptr,
-        0.0f, 
-        100.0f, 
-        ImVec2(blockSize.x - 20, 90)
-    );
     
     ImGui::EndChild();
+
+    float bottomHeight = blockSize.y / 2 - 10;
+    float leftWidthPercent = 0.7f;
+    float rightWidthPercent = 0.3f;
+
+    ImGui::SetCursorPos(ImVec2(position.x, position.y + blockSize.y / 2 + 10));
+
+    ImGui::BeginChild("CPU Graph", ImVec2(blockSize.x * leftWidthPercent - 5, bottomHeight), true);
+    RenderCPUGraph(state, ImVec2(blockSize.x * leftWidthPercent - 5, bottomHeight));
+    ImGui::EndChild();
+
+    ImGui::SetCursorPos(ImVec2(position.x + blockSize.x * (1 - rightWidthPercent) + 5, position.y + blockSize.y / 2 + 10));
+
+    ImGui::BeginChild("CPU Percent", ImVec2(blockSize.x * rightWidthPercent - 5, bottomHeight), true);
+    RenderCPUPercent(state, ImVec2(blockSize.x * rightWidthPercent - 5, bottomHeight));
+    ImGui::EndChild();
+}
+
+void Window::RenderCPUGraph(const SystemState& state, const ImVec2& blockSize)
+{
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(35.0f/255.0f, 35.0f/255.0f, 35.0f/255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(60.0f/255.0f, 221.0f/255.0f, 167.0f/255.0f, 1.0f));
+    
+    ImGui::PlotHistogram(
+        "##CPU_GRAPH",
+        state.cpuPercent,
+        32,
+        0,
+        nullptr,
+        0.0f,
+        100.0f,
+        ImVec2(blockSize.x - 20, blockSize.y - 30)
+    );
+    
+    ImGui::PopStyleColor(2);
+}
+
+void Window::RenderCPUPercent(const SystemState& state, const ImVec2& blockSize)
+{
+    float currentPercent = state.cpuPercent[31];
+    
+    char percentText[16];
+    snprintf(percentText, sizeof(percentText), "%.1f %%", currentPercent);
+    ImVec2 percentSize = ImGui::CalcTextSize(percentText);
+    
+    float fontSize = 24.0f;
+    float scale = fontSize / ImGui::GetFontSize();
+    
+    float centerX = (blockSize.x - percentSize.x * scale) / 2.0f;
+    ImGui::SetCursorPosX(centerX);
+    
+    ImGui::SetCursorPosY((blockSize.y - percentSize.y * scale) / 2.0f);
+    
+    ImGui::PushFont(m_fontLarge);
+    ImGui::TextColored(
+        ImVec4(60.0f/255.0f, 221.0f/255.0f, 167.0f/255.0f, 1.0f),
+        "%s", percentText
+    );
+    ImGui::PopFont();
 }
 
 void Window::RenderRAM(const SystemState& state, const ImVec2& blockSize, const ImVec2& position)
 {
     ImGui::SetCursorPos(position);
     
-    ImGui::BeginChild("RAM Block", blockSize, true);
+    ImGui::BeginChild("RAM Block", ImVec2(blockSize.x, blockSize.y / 2), true);
     
     // Header
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "RAM");
+    ImGui::TextColored(ImVec4(170.0f/255.0f, 110.0f/255.0f, 255.0f/255.0f, 1.0f), "RAM");
     ImGui::Separator();
     ImGui::Spacing();
-
+    
     // RAM COUNT
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Used:");
     ImGui::SameLine(120.0f);
     ImGui::Text("%llu / %llu GB", state.ramUsedGB, state.ramTotalGB);
     
-    ImGui::Spacing();
-    
-    // RAM USAGE
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 1.0f, 1.0f), "RAM USAGE:");
-    ImGui::ProgressBar((float)state.ramPercent / 100.0f, ImVec2(blockSize.x - 75, 25));
-    ImGui::SameLine(blockSize.x - 55);
-    ImGui::Text("%.1f %%", state.ramPercent);
-    
     ImGui::EndChild();
+
+    float bottomHeight = blockSize.y / 2 - 10;
+    float leftWidthPercent = 0.7f;
+    float rightWidthPercent = 0.3f;
+
+    ImGui::SetCursorPos(ImVec2(position.x, position.y + blockSize.y / 2 + 10));
+
+    ImGui::BeginChild("RAM Graph", ImVec2(blockSize.x * leftWidthPercent - 5, bottomHeight), true);
+    RenderRAMGraph(state, ImVec2(blockSize.x * leftWidthPercent - 5, bottomHeight));
+    ImGui::EndChild();
+
+    ImGui::SetCursorPos(ImVec2(position.x + blockSize.x * (1 - rightWidthPercent) + 5, position.y + blockSize.y / 2 + 10));
+
+    ImGui::BeginChild("RAM Percent", ImVec2(blockSize.x * rightWidthPercent - 5, bottomHeight), true);
+    RenderRAMPercent(state, ImVec2(blockSize.x * rightWidthPercent - 5, bottomHeight));
+    ImGui::EndChild();
+}
+
+void Window::RenderRAMGraph(const SystemState& state, const ImVec2& blockSize)
+{
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(35.0f/255.0f, 35.0f/255.0f, 35.0f/255.0f, 1.0f));
+    
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(160.0f/255.0f, 100.0f/255.0f, 255.0f/255.0f, 1.0f));
+    
+    ImGui::PlotHistogram(
+        "##RAM_GRAPH",
+        state.ramPercent,
+        32,
+        0,
+        nullptr,
+        0.0f,
+        100.0f,
+        ImVec2(blockSize.x - 20, blockSize.y - 30)
+    );
+    
+    ImGui::PopStyleColor(2);
+}
+
+void Window::RenderRAMPercent(const SystemState& state, const ImVec2& blockSize)
+{
+    float currentPercent = state.ramPercent[31];
+    
+    char percentText[16];
+    snprintf(percentText, sizeof(percentText), "%.1f %%", currentPercent);
+    ImVec2 percentSize = ImGui::CalcTextSize(percentText);
+    
+    float fontSize = 24.0f;
+    float scale = fontSize / ImGui::GetFontSize();
+    
+    float centerX = (blockSize.x - percentSize.x * scale) / 2.0f;
+    ImGui::SetCursorPosX(centerX);
+    
+    ImGui::SetCursorPosY((blockSize.y - percentSize.y * scale) / 2.0f);
+    
+    ImGui::PushFont(m_fontLarge);
+    ImGui::TextColored(
+        ImVec4(160.0f/255.0f, 100.0f/255.0f, 255.0f/255.0f, 1.0f),
+        "%s", percentText
+    );
+    ImGui::PopFont();
 }
 
 

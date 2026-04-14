@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(ImGuiApp)
+project(ZeroSysMon)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,7 +19,7 @@ set(IMGUI_SOURCES
 )
 
 # Создаем исполняемый файл
-add_executable(ImGuiApp 
+add_executable(ZeroSysMon 
     src/main.cpp
     src/core/CpuCollector.cpp
     src/core/RamCollector.cpp
@@ -27,7 +27,7 @@ add_executable(ImGuiApp
     ${IMGUI_SOURCES})
 
 # Включаем директории
-target_include_directories(ImGuiApp PRIVATE 
+target_include_directories(ZeroSysMon PRIVATE 
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
 )
@@ -36,16 +36,16 @@ target_include_directories(ImGuiApp PRIVATE
 find_package(glfw3 REQUIRED)
 
 # Линкуем библиотеки
-target_link_libraries(ImGuiApp glfw)
+target_link_libraries(ZeroSysMon glfw)
 
 # Для Windows с ucrt64
 if(WIN32)
-    target_link_libraries(ImGuiApp opengl32)
+    target_link_libraries(ZeroSysMon opengl32)
 endif()
 
 # Опции для подавления предупреждений
 if(MSVC)
-    target_compile_options(ImGuiApp PRIVATE /W3)
+    target_compile_options(ZeroSysMon PRIVATE /W3)
 else()
-    target_compile_options(ImGuiApp PRIVATE -Wall -Wno-unused-parameter)
+    target_compile_options(ZeroSysMon PRIVATE -Wall -Wno-unused-parameter)
 endif()

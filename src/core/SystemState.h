@@ -15,7 +15,7 @@ struct SystemState
     // RAM
     uint64_t ramTotalGB;
     uint64_t ramUsedGB;
-    double ramPercent;
+    float ramPercent[32] = {0};
     // GPU
     char gpuName[128];
     float gpuPercent;

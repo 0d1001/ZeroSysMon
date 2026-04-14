@@ -26,6 +26,9 @@ private:
     GLFWwindow* m_window;
 
     ImVec4 m_clearColor;
+
+    ImFont* m_fontDefault;
+    ImFont* m_fontLarge;
     
     bool m_shouldClose;
     
@@ -33,5 +36,9 @@ private:
     int m_height;
 
     void RenderCPU(const SystemState& state, const ImVec2& blockSize, const ImVec2& position);
+    void RenderCPUGraph(const SystemState& state, const ImVec2& blockSize);
+    void RenderCPUPercent(const SystemState& state, const ImVec2& blockSize);
     void RenderRAM(const SystemState& state, const ImVec2& blockSize, const ImVec2& position);
+    void RenderRAMGraph(const SystemState& state, const ImVec2& blockSize);
+    void RenderRAMPercent(const SystemState& state, const ImVec2& blockSize);
 };

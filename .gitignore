@@ -1,5 +1,8 @@
 build/
+release/
 cmake-build-*/
+*.bat
+*.ini
 
 # Prerequisites
 *.d
