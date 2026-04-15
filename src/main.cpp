@@ -19,6 +19,7 @@ int main() {
     RamCollector ramCollector;
     GpuCollector gpuCollector;
     cpuCollector.Initialize(state);
+    gpuCollector.Initialize(state);
     
     auto lastUpdate = std::chrono::steady_clock::now();
 

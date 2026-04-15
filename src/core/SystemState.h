@@ -18,9 +18,8 @@ struct SystemState
     float ramPercent[32] = {0};
     // GPU
     char gpuName[128];
-    float gpuPercent;
+    float gpuPercent[32] = {0};
     uint64_t gpuMemoryTotalMB;
     uint64_t gpuMemoryUsedMB;
-    float gpuHistory[32];
-    bool gpuAvailable;
+    bool gpuAvailable = false;
 };

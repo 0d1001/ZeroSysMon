@@ -234,9 +234,9 @@ void Window::RenderCPU(const SystemState& state, const ImVec2& blockSize, const 
 void Window::RenderCPUGraph(const SystemState& state, const ImVec2& blockSize)
 {
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(35.0f/255.0f, 35.0f/255.0f, 35.0f/255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(60.0f/255.0f, 221.0f/255.0f, 167.0f/255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(60.0f/255.0f, 221.0f/255.0f, 167.0f/255.0f, 1.0f));
     
-    ImGui::PlotHistogram(
+    ImGui::PlotLines(
         "##CPU_GRAPH",
         state.cpuPercent,
         32,
@@ -288,7 +288,7 @@ void Window::RenderRAM(const SystemState& state, const ImVec2& blockSize, const 
     // RAM COUNT
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Used:");
     ImGui::SameLine(120.0f);
-    ImGui::Text("%llu / %llu GB", state.ramUsedGB, state.ramTotalGB);
+    ImGui::Text("%llu / %llu MB", state.ramUsedGB, state.ramTotalGB);
     
     ImGui::EndChild();
 
@@ -313,9 +313,9 @@ void Window::RenderRAMGraph(const SystemState& state, const ImVec2& blockSize)
 {
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(35.0f/255.0f, 35.0f/255.0f, 35.0f/255.0f, 1.0f));
     
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(160.0f/255.0f, 100.0f/255.0f, 255.0f/255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(160.0f/255.0f, 100.0f/255.0f, 255.0f/255.0f, 1.0f));
     
-    ImGui::PlotHistogram(
+    ImGui::PlotLines(
         "##RAM_GRAPH",
         state.ramPercent,
         32,
@@ -396,11 +396,11 @@ void Window::RenderGPU(const SystemState& state, const ImVec2& blockSize, const 
 void Window::RenderGPUGraph(const SystemState& state, const ImVec2& blockSize)
 {
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(35.0f/255.0f, 35.0f/255.0f, 35.0f/255.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(1.0f, 0.549f, 0.196f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_PlotLines, ImVec4(1.0f, 0.549f, 0.196f, 1.0f));
     
-    ImGui::PlotHistogram(
+    ImGui::PlotLines(
         "##GPU_GRAPH",
-        state.gpuHistory,
+        state.gpuPercent,
         32,
         0,
         nullptr,
@@ -414,7 +414,7 @@ void Window::RenderGPUGraph(const SystemState& state, const ImVec2& blockSize)
 
 void Window::RenderGPUPercent(const SystemState& state, const ImVec2& blockSize)
 {
-    float currentPercent = state.gpuHistory[31];
+    float currentPercent = state.gpuPercent[31];
     
     char percentText[16];
     snprintf(percentText, sizeof(percentText), "%.1f %%", currentPercent);
