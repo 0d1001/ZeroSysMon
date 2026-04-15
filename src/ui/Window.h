@@ -38,6 +38,11 @@ private:
     void RenderCPU(const SystemState& state, const ImVec2& blockSize, const ImVec2& position);
     void RenderCPUGraph(const SystemState& state, const ImVec2& blockSize);
     void RenderCPUPercent(const SystemState& state, const ImVec2& blockSize);
+
+    void RenderGPU(const SystemState& state, const ImVec2& blockSize, const ImVec2& position);
+    void RenderGPUGraph(const SystemState& state, const ImVec2& blockSize);
+    void RenderGPUPercent(const SystemState& state, const ImVec2& blockSize);
+
     void RenderRAM(const SystemState& state, const ImVec2& blockSize, const ImVec2& position);
     void RenderRAMGraph(const SystemState& state, const ImVec2& blockSize);
     void RenderRAMPercent(const SystemState& state, const ImVec2& blockSize);

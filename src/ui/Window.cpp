@@ -155,6 +155,17 @@ void Window::Render(const SystemState& state)
     );
     
     RenderRAM(state, ramBlockSize, ramPosition);
+
+    // GPU BLOCK
+    ImVec2 gpuBlockSize(std::max((m_width / 2 - margin - blockSpacing / 2), minBlockWidth), std::max((m_height / 2 - margin - blockSpacing / 2), minBlockHeight));
+    ImVec2 gpuPosition(
+        margin,
+        cpuBlockSize.y + margin + blockSpacing
+    );
+    
+    RenderGPU(state, gpuBlockSize, gpuPosition);
+
+    ImGui::Dummy(ImVec2(0, 0));
     
     ImGui::End();
     // =================================
@@ -337,6 +348,89 @@ void Window::RenderRAMPercent(const SystemState& state, const ImVec2& blockSize)
     ImGui::PushFont(m_fontLarge);
     ImGui::TextColored(
         ImVec4(160.0f/255.0f, 100.0f/255.0f, 255.0f/255.0f, 1.0f),
+        "%s", percentText
+    );
+    ImGui::PopFont();
+}
+
+void Window::RenderGPU(const SystemState& state, const ImVec2& blockSize, const ImVec2& position)
+{
+    ImGui::SetCursorPos(position);
+    
+    ImGui::BeginChild("GPU Block", ImVec2(blockSize.x, blockSize.y / 2), true);
+    
+    // Header
+    ImGui::TextColored(ImVec4(1.0f, 0.549f, 0.196f, 1.0f), "GPU");
+    ImGui::Separator();
+    ImGui::Spacing();
+    
+    // GPU NAME
+    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "GPU:");
+    ImGui::SameLine(120.0f);
+    ImGui::Text("%s", state.gpuName);
+    
+    // VRAM Count
+    ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Used:");
+    ImGui::SameLine(120.0f);
+    ImGui::Text("%llu / %llu GB", state.gpuMemoryUsedMB, state.gpuMemoryTotalMB);
+    
+    ImGui::EndChild();
+
+    float bottomHeight = blockSize.y / 2 - 10;
+    float leftWidthPercent = 0.7f;
+    float rightWidthPercent = 0.3f;
+
+    ImGui::SetCursorPos(ImVec2(position.x, position.y + blockSize.y / 2 + 10));
+
+    ImGui::BeginChild("GPU Graph", ImVec2(blockSize.x * leftWidthPercent - 5, bottomHeight), true);
+    RenderGPUGraph(state, ImVec2(blockSize.x * leftWidthPercent - 5, bottomHeight));
+    ImGui::EndChild();
+
+    ImGui::SetCursorPos(ImVec2(position.x + blockSize.x * (1 - rightWidthPercent) + 5, position.y + blockSize.y / 2 + 10));
+
+    ImGui::BeginChild("GPU Percent", ImVec2(blockSize.x * rightWidthPercent - 5, bottomHeight), true);
+    RenderGPUPercent(state, ImVec2(blockSize.x * rightWidthPercent - 5, bottomHeight));
+    ImGui::EndChild();
+}
+
+void Window::RenderGPUGraph(const SystemState& state, const ImVec2& blockSize)
+{
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(35.0f/255.0f, 35.0f/255.0f, 35.0f/255.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(1.0f, 0.549f, 0.196f, 1.0f));
+    
+    ImGui::PlotHistogram(
+        "##GPU_GRAPH",
+        state.gpuHistory,
+        32,
+        0,
+        nullptr,
+        0.0f,
+        100.0f,
+        ImVec2(blockSize.x - 20, blockSize.y - 30)
+    );
+    
+    ImGui::PopStyleColor(2);
+}
+
+void Window::RenderGPUPercent(const SystemState& state, const ImVec2& blockSize)
+{
+    float currentPercent = state.gpuHistory[31];
+    
+    char percentText[16];
+    snprintf(percentText, sizeof(percentText), "%.1f %%", currentPercent);
+    ImVec2 percentSize = ImGui::CalcTextSize(percentText);
+    
+    float fontSize = 24.0f;
+    float scale = fontSize / ImGui::GetFontSize();
+    
+    float centerX = (blockSize.x - percentSize.x * scale) / 2.0f;
+    ImGui::SetCursorPosX(centerX);
+    
+    ImGui::SetCursorPosY((blockSize.y - percentSize.y * scale) / 2.0f);
+    
+    ImGui::PushFont(m_fontLarge);
+    ImGui::TextColored(
+        ImVec4(1.0f, 0.549f, 0.196f, 1.0f),
         "%s", percentText
     );
     ImGui::PopFont();

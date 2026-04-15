@@ -21,4 +21,6 @@ struct SystemState
     float gpuPercent;
     uint64_t gpuMemoryTotalMB;
     uint64_t gpuMemoryUsedMB;
+    float gpuHistory[32];
+    bool gpuAvailable;
 };

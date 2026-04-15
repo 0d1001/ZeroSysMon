@@ -5,6 +5,7 @@
 #include "core/SystemState.h"
 #include "core/CpuCollector.h"
 #include "core/RamCollector.h"
+#include "core/GpuCollector.h"
 #include "ui/Window.h"
 
 int main() {
@@ -16,6 +17,7 @@ int main() {
     SystemState state = {};
     CpuCollector cpuCollector;
     RamCollector ramCollector;
+    GpuCollector gpuCollector;
     cpuCollector.Initialize(state);
     
     auto lastUpdate = std::chrono::steady_clock::now();
@@ -27,6 +29,7 @@ int main() {
         if (std::chrono::duration_cast<std::chrono::seconds>(now - lastUpdate).count() >= 1) {
             cpuCollector.Update(state);
             ramCollector.Update(state);
+            gpuCollector.Update(state);
             lastUpdate = now;
         }
         
