@@ -12,7 +12,7 @@
 
 ## Скриншоты / Screenshots
 
-![ZeroSysMon Screenshot](screenshot.png)
+![ZeroSysMon Screenshot](preview.png)
 
 ---
 
