@@ -288,7 +288,7 @@ void Window::RenderRAM(const SystemState& state, const ImVec2& blockSize, const 
     // RAM COUNT
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Used:");
     ImGui::SameLine(120.0f);
-    ImGui::Text("%llu / %llu MB", state.ramUsedGB, state.ramTotalGB);
+    ImGui::Text("%llu / %llu GB", state.ramUsedGB, state.ramTotalGB);
     
     ImGui::EndChild();
 
@@ -372,7 +372,7 @@ void Window::RenderGPU(const SystemState& state, const ImVec2& blockSize, const 
     // VRAM Count
     ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.9f, 1.0f), "Used:");
     ImGui::SameLine(120.0f);
-    ImGui::Text("%llu / %llu GB", state.gpuMemoryUsedMB, state.gpuMemoryTotalMB);
+    ImGui::Text("%llu / %llu MB", state.gpuMemoryUsedMB, state.gpuMemoryTotalMB);
     
     ImGui::EndChild();
 

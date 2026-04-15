@@ -24,6 +24,8 @@ add_executable(ZeroSysMon
     src/ui/Window.cpp
     ${IMGUI_SOURCES})
 
+set_target_properties(ZeroSysMon PROPERTIES WIN32_EXECUTABLE ON)
+
 target_include_directories(ZeroSysMon PRIVATE 
     ${IMGUI_DIR}
     ${IMGUI_DIR}/backends
